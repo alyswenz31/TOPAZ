@@ -15,7 +15,7 @@ This repository includes:
 
 The TOPAZ pipeline consists of four major stages:
 1. **Simulation / Topological Data Analysis (TDA)**
-2. **Approximate Bayesian Computation (ABC) (with the option of adding Approximate Approximate Bayesian Computation (AABC)**
+2. **Approximate Bayesian Computation (ABC) (with the option of adding Approximate Approximate Bayesian Computation (AABC))**
 3. **Statistical verification**
 4. **Bayesian Information Criterion (BIC)**
 
