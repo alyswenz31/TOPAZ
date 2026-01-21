@@ -15,7 +15,7 @@ This repository includes:
 
 The TOPAZ pipeline consists of four major stages:
 1. **Simulation / Topological Data Analysis (TDA)**
-2. **Approximate Bayesian Computation (ABC) (with the option of adding Approximate Approximate Bayesian Computation (AABC)**
+2. **Approximate Bayesian Computation (ABC) (with the option of adding Approximate Approximate Bayesian Computation (AABC))**
 3. **Statistical verification**
 4. **Bayesian Information Criterion (BIC)**
 
@@ -110,7 +110,7 @@ All scripts assume a standard scientific Python environment and are documented t
 - `get_results_aabc.py`: Aggregates simulation results into a CSV file.
 - `submit_pars_n_crockers.sh`: HPC launcher for `get_pars_n_crockers.py`.
 - `submit_results_aabc.sh`: HPC launcher for `get_results_aabc.py`.
-- `view_crocker.py: Generates Crocker pdf from chosen `crocker_angles.py` files.
+- `view_crocker.py`: Generates Crocker pdf from chosen `crocker_angles.py` files.
 
 ---
 
@@ -124,7 +124,7 @@ One Time Through:
 5. `ABC_S05_process_sim.py` – Runs simulation at ABC-estimated medians (`submit5.sh`).
 6. `ABC_S06_process_crocker.py` – Crocker plots for estimated medians (`submit6.sh`).
 7. `bic.py` – Calculates BIC scores (`submitBIC.sh`).
-8. Run `get_pars_n_crockers.py in `AABC_after_ABC` (`submit_pars_n_crockers.sh`).
+8. Run `get_pars_n_crockers.py` in `AABC_after_ABC` (`submit_pars_n_crockers.sh`).
 
 Repeatedly until Convergence: 
 1. `aabc_run_tree.py` - Generates X Number of AABC samples based on above ABC simulations (submitAABC_tree.sh).
@@ -180,7 +180,7 @@ If you use this code or framework in your research, please cite:
 
 > Wenzel, A.R., Haughey, P.M., Nguyen, K.C., Nardini, J.T., Haugh, J.M., & Flores, K.B.  
 > _Topologically-based parameter inference for agent-based model selection from spatiotemporal cellular data_.  
-> (Submitted to *Bioinformatics*, 2025).
+> (Submitted to *PLOS Computational Biology*, 2025).
 
 ---
 
