@@ -180,7 +180,7 @@ If you use this code or framework in your research, please cite:
 
 > Wenzel, A.R., Haughey, P.M., Nguyen, K.C., Nardini, J.T., Haugh, J.M., & Flores, K.B.  
 > _Topologically-based parameter inference for agent-based model selection from spatiotemporal cellular data_.  
-> (Submitted to *Bioinformatics*, 2025).
+> (Submitted to *PLOS Computational Biology*, 2025).
 
 ---
 
