@@ -87,6 +87,10 @@ def compute_medians_and_densities(C_idx,L_idx,W_idx):
         Widx_belowTH = np.argmin(np.abs(Ws_plot-W_vals[belowTH_idx]))
         sample_count_map[Cidx_belowTH,Lidx_belowTH,Widx_belowTH] += 1
 
+    posteriors = sample_count_map  
+    posteriors[posteriors != 0] = posteriors[posteriors != 0] / (len(sample_losses)*0.01)
+    np.save('./Chosen_C_'+str(C_idx).zfill(2)+'_L_'+str(L_idx).zfill(2)+'_W_'+str(W_idx).zfill(2)+'/posteriors.npy',posteriors)
+
     C_mesh_plot, L_mesh_plot = np.meshgrid(Cs_plot, Ls_plot, indexing='ij')
 
     for each_w in range(len(Ws)):

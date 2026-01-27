@@ -54,8 +54,8 @@ def filtering_df(filt_df, FRAME_LIST, track_len=10, max_frame=128, min_speed=Non
         object2= filt_df[(filt_df["particle"].isin(p_t1)) & (filt_df["particle"].isin(p_t2))]
         frame_t2 = object2[object2['frame']==frame_idx]
         frame_t1 = object2[object2['frame']==frame_idx-track_len]
-        delta_x = frame_t2.x.values-frame_t1.x.values
-        delta_y = frame_t2.y.values-frame_t1.y.values
+        delta_x = np.array(frame_t2.x.values - frame_t1.x.values, dtype=float)
+        delta_y = np.array(frame_t2.y.values - frame_t1.y.values, dtype=float)
         angle_xy = np.arctan2(delta_y,delta_x)
         deg_xy = np.mod(np.degrees(angle_xy),360)
         mag_xy = np.sqrt(np.square(delta_x)+np.square(delta_y))
@@ -78,6 +78,7 @@ def filtering_df(filt_df, FRAME_LIST, track_len=10, max_frame=128, min_speed=Non
     return new_data, min_speed
 
 def run_ABC_crocker(C_idx,L_idx,W_idx,T0,TF,DT,in_num_agents):
+    
     #VANILLA CROCKER
     #Which DataFrame columns to use as dimensions
     DATA_COLS = ('x','y','angle')
