@@ -150,21 +150,20 @@ Extra:
 
 ### Ready_To_Use_Example
 
-- `TOPAZ_CLW.ipynb`: Minimal example (1 simulation + 30 ABC samples + 1 BIC).
+- `TOPAZ_CLW.ipynb`: Minimal example (1 simulation + 30 ABC samples + 1 Stat Ver. + 1 BIC + AABC Extension).
 - `sample_30/`: Precomputed Crocker matrices for 30 ABC samples.
 - `Modules_CLW/`: Core modules adapted for the small-scale example.
 - `Scripts/`: Shared utility scripts.
-- `Example_created_code/`: Example outputs from the pipeline.
+- `Example_created_code/`: Example outputs from the pipeline (AABC samples not included for space purposes).
+- `Statistical_Verification_Files/`: Example posterior-based Crocker matrices to be used for statistical verification.
 - `ic_vec.npy`: Shared initial conditions file.
-- `mega_w_pic_dark`: Figure of the pipeline used in the notebook.
+- `Fig_1_Mega_Figure.png`: Figure of the pipeline used in the notebook.
 
 ### Insert_Own_ABM_Example
 
 - `TOPAZ_General.ipynb`: Template for inserting your own ABM simulation results.
-- `Modules_General/`: General pipeline modules (some placeholders for user ABM).
-- `mega_w_pic_dark`: Figure of the pipeline used in the notebook.
-
-- Will be updated to include AABC and Statistical Verification.
+- `Modules_General/`: General ABC + BIC pipeline modules (some placeholders for user ABM).
+- `mega_w_pic_dark`: Figure of the ABC only pipeline used in the notebook.
 
 ---
 
