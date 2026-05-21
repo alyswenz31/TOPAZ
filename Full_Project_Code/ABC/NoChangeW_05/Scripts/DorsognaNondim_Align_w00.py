@@ -66,8 +66,15 @@ class DorsognaNondim:
         #Compute model components
         # BIG NOTE: In Bashkar et al. code, their x-vector has size (200,1)
         # In this code, our x-vector has size (1,200)
-        xdiff = x.T - x
-        ydiff = y.T - y
+        Lx = 25*1.16162489196
+        Ly = 25*0.88504753673
+
+        dx = x.T - x
+        dy = y.T - y
+
+        xdiff = dx - Lx * np.round(dx / Lx)
+        ydiff = dy - Ly * np.round(dy / Ly)
+        
         D = np.sqrt(xdiff**2+ydiff**2)
         with np.errstate(over='raise'):
             v_normSq = vx**2 + vy**2
@@ -131,8 +138,15 @@ class DorsognaNondim:
         #Compute model components
         # BIG NOTE: In Bashkar et al. code, their x-vector has size (200,1)
         # In this code, our x-vector has size (1,200)
-        xdiff = x.T - x
-        ydiff = y.T - y
+        Lx = 25*1.16162489196
+        Ly = 25*0.88504753673
+
+        dx = x.T - x
+        dy = y.T - y
+
+        xdiff = dx - Lx * np.round(dx / Lx)
+        ydiff = dy - Ly * np.round(dy / Ly)
+        
         D = np.sqrt(xdiff**2+ydiff**2)
         with np.errstate(over='raise'):
             v_normSq = vx**2 + vy**2
