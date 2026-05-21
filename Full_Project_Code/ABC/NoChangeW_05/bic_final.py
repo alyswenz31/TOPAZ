@@ -23,7 +23,7 @@ def BIC_fun(Cidx, Lidx, Widx, CLW_path):
 
     # do RSS
     RSS = np.sum(crocker_diffs**2)
-    sig_sq = 1
+    sig_sq = RSS/n
     Log_L = -(n/2)*math.log(2*math.pi)-(n/2)*math.log(sig_sq)-(RSS/(2*sig_sq))
     
     # put it all together into BIC 
