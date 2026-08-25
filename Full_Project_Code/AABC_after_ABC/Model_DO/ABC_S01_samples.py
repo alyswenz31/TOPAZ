@@ -32,9 +32,9 @@ def run_simulation(pars, ic_vec, time_vec, num_sample, iSample):
     par_dir = 'sample_'+str(num_sample)
     #Where to save the runs
     if SIGMA == 0:
-        FIGURE_PATH = './Simulated_Grid/ODE_Align/'+par_dir+'/'
+        FIGURE_PATH = './'+par_dir+'/'
     elif SIGMA > 0:
-        FIGURE_PATH = './Simulated_Grid/SDE/'+par_dir+'/'
+        FIGURE_PATH = './'+par_dir+'/'
     else:
         raise ValueError("{0} is an invalid value for SIGMA".format(SIGMA))
 
@@ -92,7 +92,7 @@ rng = np.random.default_rng()
 
 num_agents = 300
 #Number of datasets to make
-NUM_SAMPLE = 2080 #UPDATE AS NEEDED - Scale by size of grid below x 10
+NUM_SAMPLE = 2100 #UPDATE AS NEEDED - Scale by size of grid below x 10
 
 ic_vec = np.load('ic_vec.npy',allow_pickle=True)
 
@@ -105,8 +105,8 @@ BETA = 0.5
 list_tuples = []
 for iSample in range(NUM_SAMPLE):
     if iSample>= 0:
-        C = np.random.uniform(low=0.1,high=1.6)
-        L = np.random.uniform(low=1.8,high=3.0)
+        C = np.random.uniform(low=0.4,high=1.3)
+        L = np.random.uniform(low=1.0,high=3.0)
         W = 0.0 
         list_tuples.append((SIGMA, ALPHA, BETA, C, L, W, ic_vec, time_vec, NUM_SAMPLE, iSample))
 

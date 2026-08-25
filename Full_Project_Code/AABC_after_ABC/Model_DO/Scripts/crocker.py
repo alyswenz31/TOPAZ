@@ -145,7 +145,7 @@ def plot_crocker_highres_split(crocker,prox_vec,frame_list,crocker1,prox_vec1,fr
     ticklabs1 = cbar1.ax.get_yticklabels()
     cbar1.ax.set_yticklabels(ticklabs1, fontsize=20)
     
-    ax1.set_title("Betti 0",fontsize=30)
+    ax1.set_title("Betti-0",fontsize=30)
     plt.yscale('log')
     bcs1 = ax2.contourf(*np.meshgrid(range(1,crocker1.shape[0]+1),
                                      prox_vec1,indexing='ij'),
@@ -154,17 +154,17 @@ def plot_crocker_highres_split(crocker,prox_vec,frame_list,crocker1,prox_vec1,fr
     cbar2 = fig.colorbar(bcs1,ax=ax2)
     ticklabs2 = cbar2.ax.get_yticklabels()
     cbar2.ax.set_yticklabels(ticklabs2, fontsize=20)
-    ax2.set_title("Betti 1",fontsize=30)
+    ax2.set_title("Betti-1",fontsize=30)
     plt.yscale('log')
     ax1.set_ylabel(r'Proximity $(\varepsilon)$',fontsize=30)
     ax1.set_xlabel('Time (frame)',fontsize=30)
     ax1.tick_params(axis='x', labelsize=20)
     ax1.tick_params(axis='y', labelsize=20)
-    plt.setp(ax1, xticks=[10, 30, 50, 70, 90], xticklabels=frame_list) #instead of [10, 30, 50] did [10, 30, 50, 70, 90]
+    plt.setp(ax1, xticks=[10, 30, 50, 70, 90], xticklabels=frame_list)
     ax2.set_xlabel('Time (frame)',fontsize=30)
     ax2.tick_params(axis='x', labelsize=20)
     ax2.tick_params(axis='y', labelsize=20)
-    plt.setp(ax2, xticks=[10, 30, 50, 70, 90], xticklabels=frame_list) #instead of [10, 30, 50] did [10, 30, 50, 70, 90]
+    plt.setp(ax2, xticks=[10, 30, 50, 70, 90], xticklabels=frame_list)
     plt.tight_layout()
     if save_path == None:
         return fig
