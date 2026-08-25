@@ -66,6 +66,13 @@ class DorsognaNondim:
         #Compute model components
         # BIG NOTE: In Bashkar et al. code, their x-vector has size (200,1)
         # In this code, our x-vector has size (1,200)
+        # OLD
+        # xdiff = x.T - x
+        # xdiff = np.minimum(abs(x.T-x),abs(abs(x.T-x)-25*1.16162489196)) #NEW
+        # ydiff = y.T - y
+        # ydiff = np.minimum(abs(y.T-y),abs(abs(y.T-y)-25*0.88504753673)) #NEW
+
+        # NEW
         Lx = 25*1.16162489196
         Ly = 25*0.88504753673
 
@@ -138,6 +145,13 @@ class DorsognaNondim:
         #Compute model components
         # BIG NOTE: In Bashkar et al. code, their x-vector has size (200,1)
         # In this code, our x-vector has size (1,200)
+        # OLD
+        # xdiff = x.T - x
+        # xdiff = np.minimum(abs(x.T-x),abs(abs(x.T-x)-25*1.16162489196)) #NEW
+        # ydiff = y.T - y
+        # ydiff = np.minimum(abs(y.T-y),abs(abs(y.T-y)-25*0.88504753673)) #NEW
+
+        # NEW
         Lx = 25*1.16162489196
         Ly = 25*0.88504753673
 

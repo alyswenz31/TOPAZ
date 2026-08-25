@@ -1,6 +1,3 @@
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
-
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
@@ -8,6 +5,7 @@ import numpy as np
 import os
 from ripser import ripser
 import scipy
+import re
 
 import concurrent.futures
 from scipy.integrate import ode
@@ -17,6 +15,11 @@ from itertools import repeat
 
 from Scripts.DorsognaNondim_Align import *
 from Scripts.crocker import *
+from Scripts.aabc_utils import compute_crocker_loss, latest_corrected_run
+
+def get_latest_run(folder):
+    run_number, _ = latest_corrected_run(folder)
+    return run_number
 
 def filtering_df(filt_df, FRAME_LIST, track_len=10, max_frame=128, min_speed=None):
     
@@ -84,9 +87,8 @@ def filtering_df(filt_df, FRAME_LIST, track_len=10, max_frame=128, min_speed=Non
         
     return new_data, min_speed
     
-# This code is designed for the C=0.7, L=2.5 grid
-# You can modify the pars_idc list to include other parameter combinations as needed
-pars_idc = [(6,24,0),(6,24,5)]
+
+pars_idc = [(6, 24, 0), (6, 24, 5)]
 
 #VANILLA CROCKER
 #Which DataFrame columns to use as dimensions
@@ -104,8 +106,6 @@ time_vec = np.arange(T0,TF+DT,DT)
 rng = np.random.default_rng()
 
 num_agents = 300
-#Number of datasets to make
-NUM_RUNS = 100
 
 #List of frame values to use, must be aligned for direct comparison
 true_FRAME_LIST = range(20,120,1)
@@ -128,14 +128,19 @@ Cs = np.linspace(0.1,3.0,30)
 Ls = np.linspace(0.1,3.0,30)
 Ws = np.linspace(0.0,0.1,11)
 
+
 for pars_idx in pars_idc:
     Cidx, Lidx, Widx = pars_idx
     Cval = Cs[Cidx]
     Lval = Ls[Lidx]
     Wval = Ws[Widx]
+
+    folder = f'./Widx_{str(Widx).zfill(2)}'
+    sample_size = get_latest_run(folder)
+    run_dir=f'{folder}/run_{sample_size}'
     
     # Get true data frame:
-    true_PATH = './Simulated_Grid/ODE_Align/Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'/run_1/df.pkl'
+    true_PATH = './Widx_'+str(Widx).zfill(2)+'/df.pkl'
     true_df = pd.read_pickle(true_PATH)
     if 'angle' in DATA_COLS:
         true_df, _ = filtering_df(true_df, pred_FRAME_LIST, track_len=10, max_frame=126, min_speed=0)
@@ -148,20 +153,19 @@ for pars_idx in pars_idc:
                                PROX_VEC,
                                [50,150,250,350,450],
                                [Cval,Lval,Wval],
-                                           save_path='./Simulated_Grid/ODE_Align/Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'/run_1/true_crocker_'+'Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'_angles_OGw00.pdf')
+                                           save_path=f'{run_dir}/true_crocker_'+'Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'_angles.pdf')
 
     # load median values
-    median_path = './Simulated_Grid/ODE_Align/Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'/run_1/medians.npy'
+    median_path = f'{run_dir}/medians.npy'
     medians = np.load(median_path,allow_pickle=True)
     
     # Get ABC results:
-    ABC_path = './Simulated_Grid/ODE_Align/Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'/run_1/df_ABC.pkl'
+    ABC_path = f'{run_dir}/df_ABC.pkl'
     ABC_df = pd.read_pickle(ABC_path)
     if 'angle' in DATA_COLS:
         ABC_df, _ = filtering_df(ABC_df, pred_FRAME_LIST, track_len=10, max_frame=126, min_speed=0)
 
     ABC_crocker = compute_crocker_custom(ABC_df,true_FRAME_LIST,PROX_VEC,data_cols=DATA_COLS,betti=[0,1])
-    ABC_crocker.shape
     plot_crocker_highres_split(ABC_crocker,
                                PROX_VEC,
                                [50,150,250,350,450],
@@ -169,10 +173,14 @@ for pars_idx in pars_idc:
                                PROX_VEC,
                                [50,150,250,350,450],
                                medians,
-                               save_path='./Simulated_Grid/ODE_Align/Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'/run_1/ABC_crocker_'+'Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'_angles_ChangeW_00.pdf')
+                               save_path=f'{run_dir}/ABC_crocker_'+'Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'_angles_AL.pdf')
 
 
     # get the difference in the true and simulated (median value) crocker plots 
     crocker_diff = true_crocker - ABC_crocker
-    diff_path = './Simulated_Grid/ODE_Align/Cidx_'+str(Cidx).zfill(2)+'_Lidx_'+str(Lidx).zfill(2)+'_Widx_'+str(Widx).zfill(2)+'/run_1/crocker_differences.npy'
+    diff_path = f'{run_dir}//crocker_differences.npy'
     np.save(diff_path, crocker_diff)
+    np.save(
+        f'{run_dir}/posterior_median_loss.npy',
+        compute_crocker_loss(true_crocker, ABC_crocker),
+    )

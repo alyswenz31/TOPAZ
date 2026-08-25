@@ -13,15 +13,16 @@ This repository includes:
 - The full code used to run all simulations and analyses in the manuscript.
 - Two simplified Jupyter notebook tutorials for easier understanding and use.
 
-The TOPAZ pipeline consists of four major stages:
+The TOPAZ pipeline consists of three major stages with two additional optional stages:
 1. **Simulation / Topological Data Analysis (TDA)**
-2. **Approximate Bayesian Computation (ABC) (with the option of adding Approximate Approximate Bayesian Computation (AABC))**
-3. **Statistical verification**
-4. **Bayesian Information Criterion (BIC)**
+2. **Approximate Bayesian Computation (ABC)**
+2a. ** (optional) Approximate Approximate Bayesian Computation (AABC))**
+2b. ** (optional) Statistical verification**
+5. **Bayesian Information Criterion (BIC)**
 
 Each stage has been modularized and can be run independently.
 
-Most scripts in the `Full_Project_Code` folder are optimized for **High-Performance Computing (HPC)**. Even on HPC, Steps 1–2 of ABC and AABC_after_ABC can each take 1–2 days. All other scripts typically run in under an hour, many in just minutes.
+Most scripts in the `Full_Project_Code` folder are optimized for **High-Performance Computing (HPC)**. Even on HPC, Steps 1–2 of ABC, AABC_after_ABC, and Stat Verification can each take 1–2 days. All other scripts typically run in under an hour, many in just minutes.
 
 ---
 
