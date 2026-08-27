@@ -16,9 +16,12 @@ This repository includes:
 The TOPAZ pipeline consists of three major stages with two additional optional stages:
 1. **Simulation / Topological Data Analysis (TDA)**
 2. **Approximate Bayesian Computation (ABC)**
-2a. ** (optional) Approximate Approximate Bayesian Computation (AABC))**
-2b. ** (optional) Statistical verification**
-5. **Bayesian Information Criterion (BIC)**
+3. **Model selection with the Bayesian and Akaike Information Criteria (BIC/AIC)**
+
+Optional extensions:
+
+- **Approximate Approximate Bayesian Computation (AABC)**
+- **Statistical verification**
 
 Each stage has been modularized and can be run independently.
 
@@ -65,7 +68,7 @@ All scripts assume a standard scientific Python environment and are documented t
 6. `ABC_S04_p01_tolerance.py` – Posterior inference and plots (`submit4.sh`).
 7. `ABC_S05_process_sim.py` – Runs simulation at ABC-estimated medians (`submit5.sh`).
 8. `ABC_S06_process_crocker.py` – Crocker plots for estimated medians (`submit6.sh`).
-9. `bic.py` – Calculates BIC scores (`submitBIC.sh`).
+9. `bic.py`/`bic_final.py` and `aic_final.py` – Calculate BIC and AIC scores (launcher names vary by folder, including `submitBIC.sh` and `submitBICfinal.sh`).
 10. `ic_vec.npy` – Initial conditions file for ABM simulations.
 
 ---
@@ -92,7 +95,7 @@ All scripts assume a standard scientific Python environment and are documented t
 - `S02_crockerplot_save.py`: Crocker plots from full simulations.
 - `S03_crockerplot_tsneplot_gray_and_color.py`: 2D/3D t-SNE plots.
 - `ProcessResults_allFrames.ipynb`: Arrow plots across time.
-- `ProcessResults_lastFrames.ipynb`: Arrow plots at final time step.
+- `ProcessResults_lastFrame.ipynb`: Arrow plots at final time step.
 - `Scripts/`: Same as above.
 - **Not Used**: Alternate PCA/t-SNE scripts (included for completeness).
 
@@ -113,28 +116,33 @@ All scripts assume a standard scientific Python environment and are documented t
 - `submit_results_aabc.sh`: HPC launcher for `get_results_aabc.py`.
 - `view_crocker.py`: Generates Crocker pdf from chosen `crocker_angles.py` files.
 
+Each of `Model_AL/Scripts/` and `Model_DO/Scripts/` also contains:
+
+- `aabc_convergence.py`: Evaluates convergence across AABC sample batches.
+- `aabc_utils.py`: Stores shared constants and numerical utilities for the AABC pipeline.
+
 ---
 
 ## 🧬 AABC Simulation Pipeline (in Model_AL and Model_DO)
 
 One Time Through: 
-1. `ABC_S01_samples.py` – Runs X Number of ABC simulations on smaller grid (via `submit1.sh`).
-2. `ABC_S02_crockerplot_save.py` – Crocker plots for ABC samples (`submit2.sh`).
-3. `ABC_S03_crockerplot_distance.py` – Calculates distances to 10 ground-truth sims (`submit3.sh`).
-4. `ABC_S04_p01_tolerance.py` – Posterior inference and plots (`submit4.sh`).
-5. `ABC_S05_process_sim.py` – Runs simulation at ABC-estimated medians (`submit5.sh`).
-6. `ABC_S06_process_crocker.py` – Crocker plots for estimated medians (`submit6.sh`).
-7. `bic.py` – Calculates BIC scores (`submitBIC.sh`).
+1. `ABC_S01_samples.py` – Runs X Number of ABC simulations on smaller grid (via `submit_step1.sh`).
+2. `ABC_S02_crockerplot_save.py` – Crocker plots for ABC samples (`submit_step2.sh`).
+3. `ABC_S03_crockerplot_distance.py` – Calculates distances to 10 ground-truth sims (`submit_step3.sh`).
+4. `ABC_S04_p01_tolerance_combine.py` – Combines losses, performs posterior inference, and generates plots (`submit_pipeline.sh`).
+5. `ABC_S05_process_sim.py` – Runs simulation at ABC-estimated medians (`submit_pipeline.sh`).
+6. `ABC_S06_process_crocker.py` – Crocker plots for estimated medians (`submit_pipeline.sh`).
+7. `BIC_and_AIC_calculation.py` – Calculates BIC and AIC scores (`submit_pipeline.sh`).
 8. Run `get_pars_n_crockers.py` in `AABC_after_ABC` (`submit_pars_n_crockers.sh`).
 
 Repeatedly until Convergence: 
-1. `aabc_run_tree.py` - Generates X Number of AABC samples based on above ABC simulations (submitAABC_tree.sh).
-2. `ABC_S03_crockerplot_distance_aabc_multiple.py` - Calculates distances using chosen ABC and AABC samples (`submit3_aabc.sh` or `submitAABC_pipeline.sh`).
-3. Run Steps 4-7 from above (`submitAABC_pipeline.sh` will run the previous step and this step).
-4. `bic_plot_results` - Generates plot of BIC values for each grouping of ABC and AABC samples (run locally). 
+1. `aabc_run_tree.py` - Generates X Number of AABC samples based on above ABC simulations (`submit_launch_staggered_trees.sh`).
+2. `ABC_S03_crockerplot_distance.py` - Calculates distances using chosen ABC and AABC samples (`submit_launch_staggered_trees.sh`).
+3. Run Steps 4-7 from above as well as `BIC_convergence_test.py` to get convergence progress (`submit_pipeline.sh`)
 
 Extra:
 - `ic_vec.npy` – Initial conditions file for ABM simulations.
+- `submit_delete.sh` - Used within `submit_launch_staggered_trees.sh` to delete AABC files after sample losses have been saved and calculated to save on storage space
 
 ---
 
@@ -151,20 +159,34 @@ Extra:
 
 ### Ready_To_Use_Example
 
-- `TOPAZ_CLW.ipynb`: Minimal example (1 simulation + 30 ABC samples + 1 Stat Ver. + 1 BIC + AABC Extension).
+- `TOPAZ_CLW.ipynb`: Minimal example (1 simulation + 30 ABC samples + statistical verification + BIC/AIC + AABC extension).
 - `sample_30/`: Precomputed Crocker matrices for 30 ABC samples.
-- `Modules_CLW/`: Core modules adapted for the small-scale example.
+- `Modules_CLW/`: Core modules adapted for the small-scale example:
+  - `TDA1_run_CLW_sim.py`, `TDA2_get_crockers.py`: Ground-truth simulation and CROCKER generation.
+  - `ABC1_run_ABC_once.py` through `ABC6_run_ABC_crocker.py`: ABC sampling, loss, posterior, median simulation, and CROCKER comparison.
+  - `AABC1_get_params_n_crockers.py` through `AABC6_run_ABC_crocker.py`: AABC reference construction, scaled-neighbor sampling, combined loss/posterior estimation, and median simulation comparison.
+  - `BIC_calc_bic_and_aic.py`: Calculates and saves BIC, AIC, and residual-error results for ABC or AABC estimates.
+  - `STAT1_run_posterior_samples.py` through `STAT3_statistical_verification.py`: Posterior-predictive simulations, CROCKER generation, and statistical model verification.
 - `Scripts/`: Shared utility scripts.
 - `Example_created_code/`: Example outputs from the pipeline (AABC samples not included for space purposes).
 - `Statistical_Verification_Files/`: Example posterior-based Crocker matrices to be used for statistical verification.
 - `ic_vec.npy`: Shared initial conditions file.
-- `Fig_1_Mega_Figure.png`: Figure of the pipeline used in the notebook.
+- `TOPAZ_figure.png`: Figure of the pipeline used in the notebook.
 
 ### Insert_Own_ABM_Example
 
-- `TOPAZ_General.ipynb`: Template for inserting your own ABM simulation results.
-- `Modules_General/`: General ABC + BIC pipeline modules (some placeholders for user ABM).
-- `mega_w_pic_dark`: Figure of the ABC only pipeline used in the notebook.
+- `TOPAZ_General.ipynb`: Template for inserting your own ABM simulation results, including ABC, AABC, statistical verification, and BIC/AIC calculations.
+- `Modules_General/`: Model-agnostic inference and analysis modules:
+  - `ABC3_compute_losses.py`, `ABC4_medians.py`, `ABC7_crocker_difference.py`: Normalized ABC loss, configurable-grid posterior estimation, and CROCKER comparison.
+  - `AABC1_get_params_n_crockers.py` through `AABC4_medians.py`: Reference-data construction, scaled-neighbor AABC sampling, combined ABC+AABC loss, and posterior estimation.
+  - `BIC_calc_bic_and_aic.py`: Returns and saves BIC and AIC results together.
+  - `STAT3_statistical_verification.py`: PERMANOVA, energy-distance, and MMD model comparisons.
+- `Modules_General/Modules_you_replace/`: Model-specific adapters that users customize for their ABM and trajectory format:
+  - `ABC1_run_ABC_once.py`, `ABC2_run_ABC_crocker_once.py`, `ABC5_run_ABC_sim.py`, `ABC6_run_ABC_crocker.py`: ABC simulation and CROCKER adapters.
+  - `AABC5_run_ABC_sim.py`, `AABC6_run_ABC_crocker.py`: AABC-median simulation and CROCKER comparison adapters.
+  - `TDA1_run_CLW_sim.py`, `TDA2_get_crockers.py`: Ground-truth simulation and CROCKER adapter templates.
+  - `STAT1_run_posterior_samples.py`, `STAT2_run_posterior_crockers.py`: Posterior-predictive simulation and CROCKER adapter templates.
+- `TOPAZ_figure.png`: Figure of the ABC only pipeline used in the notebook.
 
 ---
 
@@ -188,4 +210,3 @@ If you use this code or framework in your research, please cite:
 
 For questions, bug reports, or contributions, please contact:  
 Kevin B. Flores – [kbflores@ncsu.edu](mailto:kbflores@ncsu.edu)
-
