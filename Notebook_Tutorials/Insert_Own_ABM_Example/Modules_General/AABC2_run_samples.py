@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import numpy as np
 
@@ -9,7 +10,8 @@ def run_samples_aabc(
     parameter_bounds,
     num_aabc_samples,
     k=5,
-    seed=2026,
+    seed=20260818,
+    dirichlet_concentration=20.0,
 ):
     """Generate model-agnostic AABC parameter/CROCKER samples."""
     reference_path = Path(reference_path)
@@ -33,18 +35,41 @@ def run_samples_aabc(
         bounds[:, 0], bounds[:, 1], size=(num_aabc_samples, bounds.shape[0])
     )
     output_path.mkdir(parents=True, exist_ok=True)
+    metadata = {
+        "samples": num_aabc_samples,
+        "neighbors": k,
+        "seed": seed,
+        "dirichlet_concentration": dirichlet_concentration,
+        "parameter_bounds": bounds.tolist(),
+        "aabc_version": "scaled_params_dirichlet20_v1",
+    }
+    (output_path / "aabc_metadata.json").write_text(
+        json.dumps(metadata, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    parameter_scale = bounds[:, 1] - bounds[:, 0]
+    scaled_reference = (theta_ref - bounds[:, 0]) / parameter_scale
 
     for index, theta_star in enumerate(sampled_params, start=1):
-        all_distances = np.linalg.norm(theta_ref - theta_star, axis=1)
+        scaled_theta = (theta_star - bounds[:, 0]) / parameter_scale
+        all_distances = np.linalg.norm(scaled_reference - scaled_theta, axis=1)
         neighbor_indices = np.argsort(all_distances)[: k + 1]
         distances = all_distances[neighbor_indices]
         bandwidth = distances[-1]
         if bandwidth <= 0:
-            weights = np.ones(k)
+            kernel_probabilities = np.full(k, 1.0 / k)
         else:
             ratios = distances[:k] / bandwidth
-            weights = np.maximum(0.75 * (1.0 - ratios**2), 1e-12)
-        mixture = rng.dirichlet(weights)
+            kernel_weights = np.maximum(1.0 - ratios**2, 0.0)
+            if np.any(kernel_weights > 0.0):
+                kernel_probabilities = kernel_weights / kernel_weights.sum()
+            else:
+                kernel_probabilities = np.full(k, 1.0 / k)
+        alpha = np.maximum(
+            dirichlet_concentration * kernel_probabilities, 1e-12
+        )
+        mixture = rng.dirichlet(alpha)
         x_star = mixture @ x_ref[neighbor_indices[:k]]
 
         run_path = output_path / f"run_{index}"

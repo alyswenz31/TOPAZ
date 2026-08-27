@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 import numpy as np
 
@@ -7,10 +8,12 @@ def get_params_n_crockers_aabc(samples_path, output_path, num_parameters=None):
     """Stack parameters and flattened CROCKER arrays from ``run_*`` folders."""
     samples_path = Path(samples_path)
     output_path = Path(output_path)
-    run_dirs = sorted(
-        (path for path in samples_path.iterdir() if path.is_dir() and path.name.startswith("run_")),
-        key=lambda path: int(path.name.rsplit("_", 1)[-1]),
-    )
+    run_dirs = []
+    for path in samples_path.iterdir():
+        match = re.fullmatch(r"run_(\d+)", path.name)
+        if match and path.is_dir():
+            run_dirs.append((int(match.group(1)), path))
+    run_dirs = [path for _, path in sorted(run_dirs)]
     if not run_dirs:
         raise FileNotFoundError(f"No run_* directories found in {samples_path}")
 

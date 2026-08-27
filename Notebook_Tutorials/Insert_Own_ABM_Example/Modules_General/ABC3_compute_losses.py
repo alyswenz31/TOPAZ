@@ -1,72 +1,53 @@
-import warnings
-warnings.simplefilter(action='ignore', category=FuturePar3arning) 
+from pathlib import Path
 
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import pandas as pd
 import numpy as np
-import os
-from ripser import ripser
-import scipy
-import concurrent.futures
 
 
 def compute_crocker_error(true_metric, pred_metric):
+    """Return an equally weighted, scale-normalized MSE across components."""
+    true_values = np.asarray(true_metric, dtype=float)
+    pred_values = np.asarray(pred_metric, dtype=float)
+    if true_values.shape != pred_values.shape:
+        raise ValueError(
+            f"CROCKER shapes differ: {true_values.shape} != {pred_values.shape}"
+        )
+    if true_values.ndim < 2:
+        raise ValueError("CROCKER arrays must have at least two dimensions")
+    if not np.all(np.isfinite(true_values)) or not np.all(np.isfinite(pred_values)):
+        return float("nan")
+    if true_values.ndim > 2:
+        losses = []
+        for component in range(true_values.shape[-1]):
+            target = true_values[..., component]
+            candidate = pred_values[..., component]
+            scale = max(float(np.max(np.abs(target))), 1.0)
+            losses.append(float(np.mean(((candidate - target) / scale) ** 2)))
+        return float(np.mean(losses))
+    scale = max(float(np.max(np.abs(true_values))), 1.0)
+    return float(np.mean(((pred_values - true_values) / scale) ** 2))
 
-    if len(true_metric.shape) > 2:
-    
-        max_B0 = np.max(true_metric[:,:,0])
-        true_B0 = true_metric[:,:,0]/max_B0
-        pred_B0 = pred_metric[:,:,0]/max_B0
-        max_B1 = np.max(true_metric[:,:,1])
-        true_B1 = true_metric[:,:,1]/max_B1
-        pred_B1 = pred_metric[:,:,1]/max_B1
-        loss = np.sum(np.abs(true_B0-pred_B0)) + np.sum(np.abs(true_B1-pred_B1))
-    else:
-        loss = np.sum((np.log10(true_metric)-np.log10(pred_metric))**2/np.max(np.log10(true_metric))**2)
 
-    return loss
-
-
-def run_compute_distance(args):
-    
-    NUM_SAMPLE, tda_crocker_angles_path, abc_crocker_angles_and_pars_path, sample_losses_angles_path = args
-    true_path = tda_crocker_angles_path
-    save_path = sample_losses_angles_path
-    true_crocker = np.load(true_path, allow_pickle=True)#.item()
-
+def compute_losses(num_samples, tda_crocker_angles_path,
+                   abc_crocker_angles_and_pars_path, sample_losses_angles_path):
+    """Calculate normalized losses for up to ``num_samples`` complete ABC runs."""
+    target = np.load(tda_crocker_angles_path, allow_pickle=True)
+    root = Path(abc_crocker_angles_and_pars_path)
     losses = {}
-
-    for iSample in range(chosen_NUM_SAMPLE):
-#        print(iSample)
-        pars_path = abc_crocker_angles_and_pars_path+'/run_'+str(iSample+1)+'/pars.npy'
-        pred_path = abc_crocker_angles_and_pars_path+'/run_'+str(iSample+1)+'/crocker_angles.npy'
-            
-        if os.path.isfile(pred_path):
-            par_values = np.load(pars_path, allow_pickle=True)
-            pred_crocker = np.load(pred_path, allow_pickle=True)
-            
-            loss = compute_crocker_error(true_crocker,pred_crocker)
-            
-            losses[str(iSample+1)] = {}
-            losses[str(iSample+1)]['sampled_pars'] = par_values
-            losses[str(iSample+1)]['loss'] = loss
-        
-    np.save(save_path,losses)
-
-def compute_losses(num_samples, tda_crocker_angles_path, abc_crocker_angles_and_pars_path, sample_losses_angles_path):
-
-    #VANILLA CROCKER
-    #Which DataFrame columns to use as dimensions
-    DATA_COLS = ('x','y','angle')
-    
-    #compute the data for the crocker plot
-    PROX_VEC = 10**(np.linspace(-2,2,200)) #for position/entire crocker
-
-    NUM_SAMPLE = num_samples
-    
-    list_tuples = []
-    list_tuples = (NUM_SAMPLE, tda_crocker_angles_path, abc_crocker_angles_and_pars_path, sample_losses_angles_path)
-    
-    run_compute_distance(list_tuples)
-    
+    for sample_number in range(1, num_samples + 1):
+        run_dir = root / f"run_{sample_number}"
+        parameter_path = run_dir / "pars.npy"
+        crocker_path = run_dir / "crocker_angles.npy"
+        if not parameter_path.is_file() or not crocker_path.is_file():
+            continue
+        losses[str(sample_number)] = {
+            "sampled_pars": np.load(parameter_path, allow_pickle=True),
+            "loss": compute_crocker_error(
+                target, np.load(crocker_path, allow_pickle=True)
+            ),
+        }
+    if not losses:
+        raise FileNotFoundError(f"No complete ABC runs found under {root}")
+    output_path = Path(sample_losses_angles_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    np.save(output_path, losses)
+    return losses
