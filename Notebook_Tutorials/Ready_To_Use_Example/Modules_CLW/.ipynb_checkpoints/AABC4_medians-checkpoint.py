@@ -12,9 +12,10 @@ import scipy
 import matplotlib as mpl
 import numpy as np
 from mpl_toolkits.mplot3d import axes3d
+from Scripts.aabc_utils import unpack_loss_records
 
 
-def compute_medians_and_densities_aabc(C_idx,L_idx,W_idx):
+def compute_medians_and_densities_aabc(C_idx,L_idx,W_idx,parameter_bounds):
     Cs = np.linspace(0.1,3.0,30)
     Ls = np.linspace(0.1,3.0,30)
     Ws = np.linspace(0, 0.1, 11)
@@ -27,57 +28,35 @@ def compute_medians_and_densities_aabc(C_idx,L_idx,W_idx):
     loss_path = './Chosen_C_'+str(C_idx).zfill(2)+'_L_'+str(L_idx).zfill(2)+'_W_'+str(W_idx).zfill(2)+'/sample_losses_angles_aabc.npy'
     sample_losses = np.load(loss_path,allow_pickle=True).item()
 
-    sample_idx = []
-    C_vals = []
-    L_vals = []
-    W_vals = []
-    losses = []
-
-    # max_Sample = len(sample_losses)
-    samples_idcs = list(sample_losses)
-    for iSample in samples_idcs:
-        iSample = int(iSample)
-        sample_idx.append(iSample)
-        losses.append(sample_losses[str(iSample)]['loss'])
-        C_vals.append(sample_losses[str(iSample)]['sampled_pars'][3])
-        L_vals.append(sample_losses[str(iSample)]['sampled_pars'][4])
-        W_vals.append(sample_losses[str(iSample)]['sampled_pars'][5])
-    losses = np.array(losses)
-    C_vals = np.array(C_vals)
-    L_vals = np.array(L_vals)
-    W_vals = np.array(W_vals)
-
-    nan_idc = np.argwhere(np.isnan(losses))
-
-    losses = np.delete(losses, nan_idc, axis=0)
-    C_vals = np.delete(C_vals, nan_idc, axis=0)
-    L_vals = np.delete(L_vals, nan_idc, axis=0)
-    W_vals = np.delete(W_vals, nan_idc, axis=0)
+    parameters, losses = unpack_loss_records(sample_losses)
+    C_vals, L_vals, W_vals = parameters.T
     
     min_loss_idx = np.argmin(losses)
     C_min = C_vals[min_loss_idx]
     L_min = L_vals[min_loss_idx]
     W_min = W_vals[min_loss_idx]
 
-    distance_threshold = np.percentile(losses, 1, axis=0) #this chooses the percent allow. could be 5 or 10% cuz 1 % is kinda harsh
-    
-    # Plot NM and ABC results
-    belowTH_idc = np.where(losses < distance_threshold)[0]
+    number_to_accept = max(1, int(np.ceil(0.01 * len(losses))))
+    belowTH_idc = np.argsort(losses, kind='stable')[:number_to_accept]
     C_median = np.median(C_vals[belowTH_idc])
     L_median = np.median(L_vals[belowTH_idc])
     W_median = np.median(W_vals[belowTH_idc])
-    
-    min_C = 0.1
-    max_C = 3.0
-    
-    min_L = 0.1
-    max_L = 3.0
 
-    min_W = 0.0
-    max_W = 0.1
+    [C_lower_val, C_upper_val] = parameter_bounds[0]
+    [L_lower_val, L_upper_val] = parameter_bounds[1]
+    [W_lower_val, W_upper_val] = parameter_bounds[2]
+    
+    min_C = C_lower_val
+    max_C = C_upper_val
+    
+    min_L = L_lower_val
+    max_L = L_upper_val
 
-    Cs_plot = np.linspace(min_C,max_C,int(np.ceil((max_C/3.0)*11)))
-    Ls_plot = np.linspace(min_L,max_L,int(np.ceil((max_L/3.0)*11)))
+    min_W = W_lower_val
+    max_W = W_upper_val
+
+    Cs_plot = np.linspace(min_C,max_C,11)
+    Ls_plot = np.linspace(min_L,max_L,11)
     Ws_plot = np.linspace(min_W,max_W,int(np.ceil((max_W/0.1)*11)))
 
     sample_count_map = np.zeros((len(Cs_plot),len(Ls_plot),len(Ws_plot)))
@@ -127,7 +106,7 @@ def compute_medians_and_densities_aabc(C_idx,L_idx,W_idx):
  
         plt.close()   
 
-    return([C_median,L_median,W_median])
-
-
+    medians = np.array([C_median,L_median,W_median])
+    np.save(os.path.dirname(loss_path) + '/medians_aabc.npy', medians)
+    return medians
 

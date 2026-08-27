@@ -22,17 +22,15 @@ def calc_bic_aabc(C_idx,L_idx,W_idx):
     crocker_diffs = np.load(error_path,allow_pickle=True)
 
     # do RSS
-    RSS = np.sum(crocker_diffs**2)
-    sig_sq = 1
+    RSS = max(float(np.sum(crocker_diffs**2)), np.finfo(float).tiny)
+    sig_sq = RSS/n
     Log_L = -(n/2)*math.log(2*math.pi)-(n/2)*math.log(sig_sq)-(RSS/(2*sig_sq))
     
     # put it all together into BIC 
-    BIC = k * math.log(n) - 2 * Log_L 
+    BIC = (k+1) * math.log(n) - 2 * Log_L
 
     BIC_results = [BIC, RSS]
 
     np.save('Chosen_C_'+str(C_idx).zfill(2)+'_L_'+str(L_idx).zfill(2)+'_W_'+str(W_idx).zfill(2)+'/bic_results_aabc.npy',BIC_results)
 
     return BIC_results
-
-

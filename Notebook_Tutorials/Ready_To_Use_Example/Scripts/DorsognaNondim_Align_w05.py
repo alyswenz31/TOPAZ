@@ -11,7 +11,7 @@ from Scripts.Alignment import flores_align
 
 
 class DorsognaNondim:
-    def __init__(self,sigma=0.01,alpha=0.3,beta=0.5,c=10.0,l=10.0, w=0.05,
+    def __init__(self,sigma=0.01,alpha=0.3,beta=0.5,c=10.0,l=10.0, w=0,
                  BCs=('left','right','top','bottom')): #w was 0.5
         ###Model parameters
         #Random walk diffusion parameter
@@ -293,7 +293,7 @@ class DorsognaNondim:
                 {'t':t,'x':vec[:num_cells],'y':vec[num_cells:2*num_cells],
                  'vx':vec[2*num_cells:3*num_cells],'vy':vec[3*num_cells:],
                  'particle':np.arange(num_cells,dtype=np.uint16),'frame':j})
-            df = pd.concat([df, frame], ignore_index=True)
+            df = df.append(frame,ignore_index=True) # type: ignore
 
         df = df.astype({'frame':np.uint16})
         return df

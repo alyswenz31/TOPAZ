@@ -2,10 +2,6 @@ import os
 import numpy as np
 import re
 
-# for loop over crocker files in a directory and get parameters from each crocker file 
-CLoptions = [(6,24)] # Update to include all C and L combinations you want to process
-
-
 def get_params_n_crockers_aabc(samples_path,C_idx,L_idx,W_idx):
 
     # get all crockers and parameters from each sample and run

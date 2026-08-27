@@ -9,23 +9,11 @@ import os
 from ripser import ripser
 import scipy
 import concurrent.futures
+from Scripts.aabc_utils import compute_crocker_loss
 
 
 def compute_crocker_error(true_metric, pred_metric):
-
-    if len(true_metric.shape) > 2:
-    
-        max_B0 = np.max(true_metric[:,:,0])
-        true_B0 = true_metric[:,:,0]/max_B0
-        pred_B0 = pred_metric[:,:,0]/max_B0
-        max_B1 = np.max(true_metric[:,:,1])
-        true_B1 = true_metric[:,:,1]/max_B1
-        pred_B1 = pred_metric[:,:,1]/max_B1
-        loss = np.sum(np.abs(true_B0-pred_B0)) + np.sum(np.abs(true_B1-pred_B1))
-    else:
-        loss = np.sum((np.log10(true_metric)-np.log10(pred_metric))**2/np.max(np.log10(true_metric))**2)
-
-    return loss
+    return compute_crocker_loss(true_metric, pred_metric)
 
 
 def run_compute_distance(args):

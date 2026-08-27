@@ -9,23 +9,12 @@ import os
 from ripser import ripser
 import scipy
 import concurrent.futures
+import re
+from Scripts.aabc_utils import compute_crocker_loss
 
 
 def compute_crocker_error(true_metric, pred_metric):
-
-    if len(true_metric.shape) > 2:
-    
-        max_B0 = np.max(true_metric[:,:,0])
-        true_B0 = true_metric[:,:,0]/max_B0
-        pred_B0 = pred_metric[:,:,0]/max_B0
-        max_B1 = np.max(true_metric[:,:,1])
-        true_B1 = true_metric[:,:,1]/max_B1
-        pred_B1 = pred_metric[:,:,1]/max_B1
-        loss = np.sum(np.abs(true_B0-pred_B0)) + np.sum(np.abs(true_B1-pred_B1))
-    else:
-        loss = np.sum((np.log10(true_metric)-np.log10(pred_metric))**2/np.max(np.log10(true_metric))**2)
-
-    return loss
+    return compute_crocker_loss(true_metric, pred_metric)
 
 
 def run_compute_distance(args):
@@ -62,10 +51,10 @@ def run_compute_distance(args):
         folder_path =f"./sample_aabc_{chosen_NUM_SAMPLE_AABC}"
         
         # find all runs dynamically
-        run_dirs = sorted([
-            d for d in os.listdir(folder_path)
-            if d.startswith("run_")
-        ])
+        run_dirs = sorted(
+            (d for d in os.listdir(folder_path) if re.fullmatch(r"run_\d+", d)),
+            key=lambda d: int(d[4:]),
+        )
 
         # determine how many runs to process
         if max_runs is None:
@@ -75,9 +64,7 @@ def run_compute_distance(args):
 
         # print(f"Processing sample_aabc_{chosen_NUM_SAMPLE_AABC} with {num_runs} runs")
 
-        for iSample in range(num_runs):
-
-            run_name = f"run_{iSample+1}"
+        for run_name in run_dirs[:num_runs]:
             pars_path = f'{folder_path}/{run_name}/theta_star.npy'
             pred_path = f'{folder_path}/{run_name}/crocker_angles.npy'
 
@@ -85,11 +72,6 @@ def run_compute_distance(args):
 
                 par_values = np.load(pars_path, allow_pickle=True)
                 pred_crocker = np.load(pred_path, allow_pickle=True)
-
-                # Expand pars from length 3 → length 6
-                par_values_extended = np.zeros(6)
-                par_values_extended[3:6] = par_values
-                par_values = par_values_extended
 
                 loss = compute_crocker_error(true_crocker, pred_crocker)
 
@@ -104,7 +86,7 @@ def run_compute_distance(args):
         
     np.save(save_path,losses)
 
-def compute_losses_aabc(C,L,W,sample_path,num_samples, sample_aabc_folders):
+def compute_losses_aabc(C,L,W,sample_path,num_samples,sample_aabc_folders):
 
     #Cidx = 15
     #Lidx = 2

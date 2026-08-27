@@ -29,7 +29,7 @@ def compute_crocker(traj_df,frame_vec,prox_vec,
         #Get relevant data from df
         data = traj_df[traj_df['frame']==j]
         data = data[list(data_cols)].to_numpy()
-        print("\r{0} points in frame {1}".format(data.shape[0],j),end='')
+        # print("\r{0} points in frame {1}".format(data.shape[0],j),end='')
         #Compute barcodes
         barcodes = ripser(data,maxdim=max(betti))['dgms']
         #Replace inf with maximum H1 death value
@@ -64,7 +64,7 @@ def compute_crocker_custom(traj_df,frame_vec,prox_vec,
         #Get relevant data from df
         data = traj_df[traj_df['frame']==j]
         data = data[list(data_cols)].to_numpy()
-        print("\r{0} points in frame {1}".format(data.shape[0],j),end='')
+        # print("\r{0} points in frame {1}".format(data.shape[0],j),end='')
         #Compute barcodes
         result = ripser(data,maxdim=max(betti),metric=custom_metric)
         barcodes = result['dgms']

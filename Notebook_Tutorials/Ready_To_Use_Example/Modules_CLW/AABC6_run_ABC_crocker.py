@@ -17,6 +17,7 @@ from itertools import repeat
 
 from Scripts.DorsognaNondim_Align import *
 from Scripts.crocker import *
+from Scripts.aabc_utils import compute_crocker_loss
 
 def filtering_df(filt_df, FRAME_LIST, track_len=10, max_frame=128, min_speed=None):
     
@@ -155,9 +156,9 @@ def run_ABC_crocker_aabc(C_idx,L_idx,W_idx,T0,TF,DT,in_num_agents):
     crocker_diff = true_crocker - ABC_crocker
     diff_path = './Chosen_C_'+str(C_idx).zfill(2)+'_L_'+str(L_idx).zfill(2)+'_W_'+str(W_idx).zfill(2)+'/crocker_differences_aabc.npy'
     np.save(diff_path, crocker_diff)
+    np.save(os.path.join(os.path.dirname(diff_path), 'posterior_median_loss_aabc.npy'),
+            compute_crocker_loss(true_crocker, ABC_crocker))
 
 
     
-
-
 
